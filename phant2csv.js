@@ -84,7 +84,28 @@ try {
 
 var rows = [];
 
+// Debugging Setup
+function checkExpDebug(def) {
+    var debug = false;
+//    if (def.pattern.indexOf("UA") >= 0 || def.pattern.indexOf("GTM") >= 0) {
+//	debug = true;
+//    }
+    return debug;
+}
+
+function removeDuplicates(matches) {
+   var newMatches = [];
+   for (var i=0; i < matches.length; i++) {
+       if (matches.lastIndexOf(matches[i]) == i) {
+           // This is either Unique, or the last occurrence
+           newMatches.push(matches[i]);
+       }
+   }
+   return newMatches;
+}
+
 for ( var i = 0; i < sites.length; i++ ) {
+  var enableDebug = false;
   var site = sites[i];
   //console.log("record [" + i + "] ", site[' URL ' ]);
   var file = U.filter(files, function(entry) {
@@ -101,25 +122,49 @@ for ( var i = 0; i < sites.length; i++ ) {
       var exp = new RegExp(def.pattern, def.modifiers);
       var match = infile.match(exp);
       var result = "";
+      enableDebug = checkExpDebug(def)
+      if (enableDebug) {
+         console.log("checking " + def);
+         console.log("checking " + def.pattern + ", modifier=" + def.modifiers);
+      }
       //console.log("checking " + def.pattern + ", match=", match);
       if ( match ) {
+        if (match.length > 1 && def.allowDups != undefined && def.allowDups == 'false') {
+            match = removeDuplicates(match);
+        }
         result = match[0];
-        //console.log('KEY=' + key);
+        if (enableDebug) {
+           console.log('KEY=' + key + " found " + match.length + " matches.");
+        }
+	//
+        // HERE is the ISSUE.  We must know the exact number for which we are searching.
+        // So, our task is to modify this to find a variable number of items, or just 
+        // ignore it.
+        //
         if ( def.hit != undefined ) {
           result = def.hit;
+          var hasSeparator = (def.separator != undefined?true:false);
           for (var k = 0; k < match.length; k++ ) {
-            result = result.replace('\{\{' + k + '\}\}', match[k]);
+	      if (!hasSeparator) {
+                 result = result.replace('\{\{' + k + '\}\}', match[k]);
+              } else {
+                  result = (result.length>0?result + def.separator + match[k]:match[k])
+              }
           }
         }
         result = result.replace('\{\{count\}\}', match.length);
-        //console.log('output=' + result);
+        if (enableDebug) {
+           console.log('output=' + result);
+        }
       } else {
         if ( def.miss != undefined ) {
           result = def.miss;
         }
       }
       row.push(result);
-      //console.log(result + " == " + key);
+      if (enableDebug) {
+         console.log(result + " == " + key);
+      }
     }
     //console.log("processing file " + files[0]);
   } else {

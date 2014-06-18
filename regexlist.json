@@ -128,8 +128,19 @@
     "Google Analytics": {
         "patternx": "utmac=(UA-[-0-9]+)",
         "pattern": "['\"](UA-\\d+-\\d+)['\"]",
-        "modifiers": "i",
-        "hit" : "{{1}}",
+        "modifiers": "g",
+        "allowDups": "false",
+        "separator" : "|",
+        "hit" : "",
+        "miss" : ""
+    },
+    "Google Tag Manager": {
+        "patternx": "gtm.js?id=(GTM-[-A-Z0-9]+)",
+        "pattern": "GTM-[\\dA-Z]+",
+        "modifiers": "g",
+        "allowDups": "false",
+        "separator" : "|",
+        "hit" : "",
         "miss" : ""
     },
     "Pop-ups": {
