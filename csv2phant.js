@@ -41,7 +41,10 @@ fs.readFile(program.csvFile, 'utf8', function (err, data) {
   var records = csv.parseCSV(data);
 
   var skipRows = (program.skipRows == undefined?-1:program.skipRows);
-  /* let's look for the header.  the header is the first row that contains a column with the urlColumn in it */
+  /* 
+   * let's look for the header.  the header is the first row that contains a
+   *  column with the urlColumn in it 
+   */
   outer:
   for ( var rI = 0; rI < records.length; rI++ ) {
     var record = records[rI];
@@ -59,8 +62,9 @@ fs.readFile(program.csvFile, 'utf8', function (err, data) {
    
   //console.log(records);
 
-  // skip the first four records because yuri's spreadsheet has a header
-  records = records.slice(skipRows);
+  // skip the first set of records for spreadsheets that have a header
+  records = (program.skipRows == undefined?records.slice(skipRows):
+                                        records.slice(program.skipRows);
   console.log("header record", JSON.stringify(records[0]));
 
   var sites = csv_to_obj(records);
@@ -78,7 +82,7 @@ fs.readFile(program.csvFile, 'utf8', function (err, data) {
           currentSite = sites[index++];
 
           console.log("processing row ", index);
-          if ( ! U.has(currentSite, program.urlColumn) ) throw "row " + index + " does not have a column named " + program.urlColumn + " " + JSON.stringify(currentSite);
+           if ( ! U.has(currentSite, program.urlColumn) ) throw "row " + index + " does not have a column named " + program.urlColumn + " " + JSON.stringify(currentSite);
           var url = currentSite[program.urlColumn].trim();
   
           if ( url.match(/^https?:\/\//i) ) {
