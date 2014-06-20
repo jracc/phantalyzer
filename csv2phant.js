@@ -39,8 +39,7 @@ fs.readFile(program.csvFile, 'utf8', function (err, data) {
   //data = data.replace(/\r\n/g, "\n");
   //console.log(data);
   var records = csv.parseCSV(data);
-
-  var skipRows = (program.skipRows == undefined?-1:program.skipRows);
+  var skipRows = -1;
   /* 
    * let's look for the header.  the header is the first row that contains a
    *  column with the urlColumn in it 
