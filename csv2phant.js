@@ -10,6 +10,7 @@ var program = require('commander');
 program
   .version('0.0.1')
   .option('-d, --dataDir <path>', 'Data directory')
+  .option('-s, --skipRows [offset]', 'Number of rows to skip in the CSV file before the header.', parseInt, 0)
   .option('-c, --csvFile <path>', 'CVS file containing site list')
   .option('-i, --imageFormat [format]')
   .option('-m, --maxRows [count]', 'Max number of records to process.', parseInt, 100000)
@@ -39,7 +40,7 @@ fs.readFile(program.csvFile, 'utf8', function (err, data) {
   //console.log(data);
   var records = csv.parseCSV(data);
 
-  var skipRows = -1;
+  var skipRows = (program.skipRows == undefined?-1:program.skipRows);
   /* let's look for the header.  the header is the first row that contains a column with the urlColumn in it */
   outer:
   for ( var rI = 0; rI < records.length; rI++ ) {

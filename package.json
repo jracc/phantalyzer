@@ -1,6 +1,6 @@
 {
   "name": "phantalyzer",
-  "version": "0.1.80",
+  "version": "0.1.81",
   "description": "A PhantomJS script for running Wappalyzer over many sites using a headless Webkit browser",
   "main": "simple.js",
   "dependencies": {
@@ -30,7 +30,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/mlconnor/phantalyzer"
+    "url": "https://github.com/jracc/phantalyzer"
   },
   "files" : [ "csv2phant.js", "phant2csv.js", "phantalyzer.js", "regexlist.json", "wappalyzer", "server.js" ]
 }
