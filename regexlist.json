@@ -11,6 +11,18 @@
         "hit" : "{{1}}",
         "miss" : "miss" 
     },
+    "Http Status Code" : {
+        "pattern" : "^pageHttpCode: ([^$]+?)$",
+        "modifiers" : "m",
+        "hit" : "{{1}}",
+        "miss" : "" 
+    },
+    "Page Http Status" : {
+        "pattern" : "^pageHttpCode: ([^$]+?)$",
+        "modifiers" : "m",
+        "hit" : "{{1}}",
+        "miss" : "" 
+    },
     "Page Error" : {
         "pattern" : "^pageError: ([^$]+?)$",
         "modifiers" : "m",
@@ -53,7 +65,7 @@
         "hit" : "yes",
         "miss" : "" 
     },
-   "PageLoad" : {
+    "PageLoad" : {
         "pattern" : "^pageLoadTimeMillis: (\\d+)",
         "modifiers" : "m",
         "hit" : "{{1}}",
@@ -65,6 +77,12 @@
         "hit" : "{{1}}",
         "miss" : ""
     },  
+    "Error Count": {
+        "pattern": "^error: ",
+        "modifiers": "im",
+        "hit" : "{{count}}",
+        "miss" : "0"
+    },
     "Websphere": {
         "pattern": "^wappalyzerDetected: Java",
         "modifiers": "im",

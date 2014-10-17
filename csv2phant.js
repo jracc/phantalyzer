@@ -7,11 +7,16 @@ var util = require('util');
 
 var program = require('commander');
 
+var concurrencyPoolCount = 0; 
+var concurrencyPoolLimit = 0;
+var concurrencyArray = [];
+
 program
   .version('0.0.1')
   .option('-d, --dataDir <path>', 'Data directory')
   .option('-s, --skipRows [offset]', 'Number of rows to skip in the CSV file before the header.', parseInt, 0)
   .option('-c, --csvFile <path>', 'CVS file containing site list')
+  .option('-s, --skipRows [offset]', 'Number of rows to skip in the CSV file before the header.', parseInt, 0)
   .option('-i, --imageFormat [format]')
   .option('-m, --maxRows [count]', 'Max number of records to process.', parseInt, 100000)
   .option('-u, --urlColumn <name>', 'Max number of records to process.', 'url')
@@ -59,11 +64,11 @@ fs.readFile(program.csvFile, 'utf8', function (err, data) {
     throw "Unable to find a row in the data with a column matching " + program.urlColumn;
   }
    
-  //console.log(records);
+  console.log(records);
 
   // skip the first set of records for spreadsheets that have a header
   records = (program.skipRows == undefined?records.slice(skipRows):
-                                        records.slice(program.skipRows);
+                                        records.slice(program.skipRows));
   console.log("header record", JSON.stringify(records[0]));
 
   var sites = csv_to_obj(records);

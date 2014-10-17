@@ -9,6 +9,7 @@ program
   .option('-d, --dataDir <path>', 'Data directory')
   .option('-x, --regexFile <path>', 'Regex file path')
   .option('-c, --csvFile <path>', 'CVS file containing site list')
+  .option('-s, --skipRows [offset]', 'Number of rows to skip in the CSV file before the header.', parseInt, 0)
   .option('-m, --maxRows [count]', 'Max number of records to process.', parseInt, 100000)
   .option('-u, --urlColumn <name>', 'Max number of records to process.', 'url')
   .parse(process.argv);
@@ -48,12 +49,12 @@ if ( ! fs.existsSync(program.csvFile) ) {
 var csvFile = fs.readFileSync(program.csvFile, 'utf8');
 csvFile = csvFile.replace(/\cm[\r\n]*/g, "\n");
 
+var skipRows = -1;
 var sites = [];
 try {
   //var csvRecs = csv.parseCSV("a,b,c\n1,2,3");
   var records = csv.parseCSV(csvFile);
 
-  var skipRows = -1;
   /* let's look for the header.  the header is the first row that contains a column with the urlColumn in it */
   outer:
   for ( var rI = 0; rI < records.length; rI++ ) {
@@ -70,7 +71,10 @@ try {
     throw "Unable to find a row in the data with a column matching " + program.urlColumn;
   }
 
-  sites = csv_to_obj(records.slice(skipRows));
+  skipRows = (program.skipRows == undefined?skipRows:program.skipRows);
+//  sites = csv_to_obj((program.skipRows == undefined?records.slice(skipRows):
+//                                        records.slice(program.skipRows)));
+  sites = csv_to_obj(records);
   //console.log(sites);
   //console.log(sites[0]);
   sites = sites.slice(0,program.maxRows);
@@ -84,12 +88,48 @@ try {
 
 var rows = [];
 
+// Load Header
+for (var headerIndex=0; headerIndex < skipRows; headerIndex++) {
+    rows.push(records[headerIndex]);
+}
+
+function convertCodeToState(code) {
+    if (code == undefined) {
+        return "Unknown";
+    }
+    if (code.match(/^(200|201|202|203|204|205|206)$/)) {
+	return "Live";
+    } else if (code.match(/^(300|301|302|303|304|305|306|307)$/)) {
+        // Split the current domain, and let's see whether the current domain is
+        // is related to the referring domain
+        return "Redirect";
+//        currentDomainElements = currentDomain.split(".");
+//        currentBaseDomain = currentDomainElements[currentDomainElements.length - 1];
+//        refDomainElements = refDomain.split(".");
+//        refBaseDomain = refDomainElements[refDomainElements.length - 1];
+//        if (currentBaseDomain == refBaseDomain) {
+//            return "Live";
+//        }
+    } else if (code.match(/^(400|401|402|403|404|405|406|408|409|410|411|412|413|414|415|416|417)$/)) {
+        return "Broken";
+    } else if (code.match(/^(407)$/)) {
+        return "Proxy Setupo Required";
+    }
+    return "Unknown";
+}
+
 // Debugging Setup
+// If you want to debug everything, just have it return true.  Otherwise, 
+// it is intended to only debug based on specific criteria being evaluated
+//
 function checkExpDebug(def) {
     var debug = false;
 //    if (def.pattern.indexOf("UA") >= 0 || def.pattern.indexOf("GTM") >= 0) {
 //	debug = true;
 //    }
+    if (def.pattern.indexOf("pageHttpCode") >= 0) {
+	debug = true;
+    }
     return debug;
 }
 
@@ -136,12 +176,11 @@ for ( var i = 0; i < sites.length; i++ ) {
         if (enableDebug) {
            console.log('KEY=' + key + " found " + match.length + " matches.");
         }
-	//
-        // HERE is the ISSUE.  We must know the exact number for which we are searching.
-        // So, our task is to modify this to find a variable number of items, or just 
-        // ignore it.
-        //
         if ( def.hit != undefined ) {
+	  //
+          // Our, our task is to modify this to find a variable number of items, or just 
+          // ignore it.  Otherwise, the code will only match one  occurrence of items.
+          //
           result = def.hit;
           var hasSeparator = (def.separator != undefined?true:false);
           for (var k = 0; k < match.length; k++ ) {
@@ -150,6 +189,12 @@ for ( var i = 0; i < sites.length; i++ ) {
               } else {
                   result = (result.length>0?result + def.separator + match[k]:match[k])
               }
+          }
+          if ("Page Http Status" == key) {
+              if (enableDebug) {
+                  console.log("checking " + key + " = " + result);
+              }
+              result = convertCodeToState(result);
           }
         }
         result = result.replace('\{\{count\}\}', match.length);
@@ -190,7 +235,8 @@ for ( var r = 0; r < rows.length; r++ ) {
 }
 
 rows.unshift(U.keys(regexObj));
-console.log(rows.join("\n"));
+fs.writeFileSync(program.csvFile + ".new", rows.join("\n"));
+// console.log(rows.join("\n"));
 
 /**
  * This awesome function will return an
